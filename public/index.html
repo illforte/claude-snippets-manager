@@ -1,0 +1,1380 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Snippets Manager</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-primary: #1a1a2e;
+            --bg-secondary: #16213e;
+            --bg-tertiary: #0f3460;
+            --text-primary: #eee;
+            --text-secondary: #aaa;
+            --text-tertiary: #888;
+            --accent: #667eea;
+            --accent-alt: #764ba2;
+            --border: #0f3460;
+            --hover: #0f3460;
+            --success: #28a745;
+            --danger: #dc3545;
+            --warning: #ffc107;
+            --info: #17a2b8;
+        }
+
+        body.light-mode {
+            --bg-primary: #f5f7fa;
+            --bg-secondary: #ffffff;
+            --bg-tertiary: #e9ecef;
+            --text-primary: #2c3e50;
+            --text-secondary: #6c757d;
+            --text-tertiary: #adb5bd;
+            --border: #dee2e6;
+            --hover: #f8f9fa;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            overflow-x: hidden;
+            transition: background 0.3s, color 0.3s;
+        }
+
+        .layout {
+            display: grid;
+            grid-template-columns: 260px 1fr;
+            height: 100vh;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            background: var(--bg-secondary);
+            padding: 16px;
+            overflow-y: auto;
+            border-right: 1px solid var(--border);
+        }
+
+        .logo {
+            font-size: 1.4em;
+            font-weight: 700;
+            color: var(--accent);
+            margin-bottom: 8px;
+        }
+
+        .subtitle {
+            font-size: 0.7em;
+            color: var(--text-secondary);
+            margin-bottom: 20px;
+            line-height: 1.3;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+
+        .stat-card {
+            background: var(--bg-tertiary);
+            border-radius: 6px;
+            padding: 10px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 1.6em;
+            font-weight: 700;
+            color: var(--accent);
+        }
+
+        .stat-label {
+            font-size: 0.7em;
+            color: var(--text-secondary);
+            margin-top: 2px;
+        }
+
+        .section-title {
+            font-size: 0.75em;
+            font-weight: 600;
+            color: var(--text-tertiary);
+            text-transform: uppercase;
+            margin: 16px 0 8px;
+            letter-spacing: 0.5px;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 10px;
+            border: none;
+            border-radius: 6px;
+            font-size: 0.85em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--accent) 0%, var(--accent-alt) 100%);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: var(--bg-tertiary);
+            color: var(--text-secondary);
+        }
+
+        .btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+
+        .theme-toggle {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+            padding: 8px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.85em;
+            width: 100%;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.2s;
+        }
+
+        .theme-toggle:hover {
+            background: var(--hover);
+        }
+
+        .filter-group {
+            margin-bottom: 12px;
+        }
+
+        .filter-label {
+            font-size: 0.75em;
+            color: var(--text-secondary);
+            margin-bottom: 4px;
+            display: block;
+        }
+
+        select, input[type="text"] {
+            width: 100%;
+            padding: 8px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            color: var(--text-primary);
+            font-size: 0.85em;
+        }
+
+        select:focus, input:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        .bulk-actions {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 8px;
+        }
+
+        .bulk-actions .btn {
+            flex: 1;
+            margin-bottom: 0;
+            padding: 6px;
+            font-size: 0.75em;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        /* Main Content */
+        .main-content {
+            padding: 16px;
+            overflow-y: auto;
+        }
+
+        .top-bar {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 12px;
+            align-items: center;
+        }
+
+        #searchInput {
+            flex: 1;
+            padding: 10px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            color: var(--text-primary);
+            font-size: 0.9em;
+        }
+
+        #searchInput::placeholder {
+            color: var(--text-tertiary);
+        }
+
+        .view-toggle {
+            display: flex;
+            gap: 4px;
+            background: var(--bg-secondary);
+            padding: 4px;
+            border-radius: 6px;
+        }
+
+        .view-btn {
+            padding: 6px 12px;
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            border-radius: 4px;
+            font-size: 0.8em;
+            transition: all 0.2s;
+        }
+
+        .view-btn.active {
+            background: var(--accent);
+            color: white;
+        }
+
+        .snippets-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+        }
+
+        .snippets-grid.view-2 {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        .snippets-grid.view-1 {
+            grid-template-columns: 1fr;
+        }
+
+        @media (max-width: 1800px) {
+            .snippets-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        @media (max-width: 1400px) {
+            .snippets-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 900px) {
+            .layout {
+                grid-template-columns: 1fr;
+            }
+            .sidebar {
+                position: fixed;
+                left: -280px;
+                top: 0;
+                height: 100vh;
+                width: 260px;
+                z-index: 1000;
+                transition: left 0.3s;
+            }
+            .sidebar.open {
+                left: 0;
+            }
+        }
+
+        .snippet-card {
+            background: var(--bg-secondary);
+            border-radius: 6px;
+            padding: 12px;
+            border-left: 2px solid var(--accent);
+            transition: all 0.2s;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            cursor: pointer;
+        }
+
+        .snippet-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.2);
+            border-left-width: 4px;
+        }
+
+        .snippet-card.copied {
+            background: rgba(40, 167, 69, 0.1);
+            border-left-color: var(--success);
+            border-left-width: 4px;
+        }
+
+        .snippet-card.selected {
+            border-color: var(--success);
+            background: var(--bg-tertiary);
+        }
+
+        .snippet-checkbox {
+            position: absolute;
+            top: 8px;
+            left: 8px;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        .snippet-card:hover .snippet-checkbox {
+            opacity: 1;
+        }
+
+        .snippet-card.selected .snippet-checkbox {
+            opacity: 1;
+        }
+
+        .snippet-title {
+            font-size: 1em;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+            cursor: pointer;
+            padding: 2px 4px;
+            border-radius: 2px;
+            word-break: break-word;
+        }
+
+        .snippet-title:hover {
+            background: var(--hover);
+        }
+
+        .snippet-title.editing {
+            background: #3d3d00;
+            border: 1px solid var(--warning);
+        }
+
+        .snippet-meta {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .snippet-prefix {
+            background: linear-gradient(135deg, var(--accent) 0%, var(--accent-alt) 100%);
+            color: white;
+            padding: 2px 6px;
+            border-radius: 10px;
+            font-size: 0.7em;
+            font-family: 'Courier New', monospace;
+            font-weight: 500;
+            cursor: pointer;
+        }
+
+        .snippet-prefix.editing {
+            background: var(--warning);
+            color: #333;
+        }
+
+        .snippet-description {
+            color: var(--text-secondary);
+            font-size: 0.8em;
+            line-height: 1.3;
+            max-height: 2.6em;
+            overflow: hidden;
+            margin-bottom: 8px;
+            font-style: italic;
+            cursor: pointer;
+            padding: 2px 4px;
+            border-radius: 2px;
+            text-overflow: ellipsis;
+        }
+
+        .snippet-description:hover {
+            background: var(--hover);
+        }
+
+        .snippet-description.editing {
+            background: #3d3d00;
+            border: 1px solid var(--warning);
+            font-style: normal;
+        }
+
+        .snippet-body {
+            background: var(--bg-tertiary);
+            padding: 8px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.75em;
+            line-height: 1.3;
+            color: var(--text-primary);
+            max-height: 220px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            cursor: pointer;
+            flex: 1;
+        }
+
+        .snippet-body:hover {
+            opacity: 0.9;
+        }
+
+        .snippet-body.editing {
+            background: #3d3d00;
+            border: 1px solid var(--warning);
+        }
+
+        .copy-indicator {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: var(--success);
+            color: white;
+            padding: 16px 32px;
+            border-radius: 8px;
+            font-size: 1.2em;
+            font-weight: 700;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+            z-index: 10;
+            box-shadow: 0 8px 24px rgba(40, 167, 69, 0.4);
+        }
+
+        .copy-indicator.show {
+            opacity: 1;
+        }
+
+        .copy-hint {
+            position: absolute;
+            bottom: 8px;
+            right: 8px;
+            background: rgba(102, 126, 234, 0.9);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.7em;
+            font-weight: 600;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s;
+            z-index: 4;
+        }
+
+        .snippet-card:hover .copy-hint {
+            opacity: 1;
+        }
+
+        .source-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 3px;
+            padding: 2px 6px;
+            border-radius: 10px;
+            font-size: 0.65em;
+            font-weight: 700;
+            vertical-align: middle;
+            margin-left: 6px;
+        }
+
+        .source-badge.claude {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            color: white;
+        }
+
+        .source-badge.user {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+        }
+
+        .snippet-card.readonly {
+            opacity: 0.95;
+        }
+
+        .snippet-card.readonly .snippet-title,
+        .snippet-card.readonly .snippet-prefix,
+        .snippet-card.readonly .snippet-description,
+        .snippet-card.readonly .snippet-body {
+            cursor: default;
+        }
+
+        .card-actions {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            display: flex;
+            gap: 4px;
+            opacity: 1;
+            transition: opacity 0.2s;
+            z-index: 5;
+        }
+
+        .snippet-card:hover .card-actions {
+            opacity: 1;
+        }
+
+        .btn-action {
+            background: var(--accent);
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9em;
+            transition: all 0.2s;
+            font-weight: 600;
+        }
+
+        .btn-action:hover {
+            background: var(--accent-alt);
+            transform: scale(1.05);
+        }
+
+        .btn-action.copied {
+            background: var(--success);
+        }
+
+        .btn-action.delete {
+            background: var(--danger);
+        }
+
+        .btn-action.duplicate {
+            background: var(--info);
+        }
+
+        .no-results {
+            text-align: center;
+            padding: 40px;
+            background: var(--bg-secondary);
+            border-radius: 8px;
+            color: var(--text-secondary);
+        }
+
+        .save-indicator {
+            position: fixed;
+            bottom: 16px;
+            right: 16px;
+            background: var(--success);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 6px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+            opacity: 0;
+            transition: opacity 0.3s;
+            font-weight: 600;
+            font-size: 0.85em;
+            z-index: 2000;
+        }
+
+        .save-indicator.show {
+            opacity: 1;
+        }
+
+        .save-indicator.error {
+            background: var(--danger);
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.show {
+            display: flex;
+        }
+
+        .modal-content {
+            background: var(--bg-secondary);
+            border-radius: 8px;
+            padding: 20px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 85vh;
+            overflow-y: auto;
+            border: 1px solid var(--accent);
+        }
+
+        .modal-header {
+            font-size: 1.3em;
+            font-weight: 600;
+            color: var(--accent);
+            margin-bottom: 16px;
+        }
+
+        .form-group {
+            margin-bottom: 12px;
+        }
+
+        .form-label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 4px;
+            color: var(--text-secondary);
+            font-size: 0.85em;
+        }
+
+        .form-input,
+        .form-textarea {
+            width: 100%;
+            padding: 8px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            font-size: 0.9em;
+            color: var(--text-primary);
+            font-family: inherit;
+        }
+
+        .form-input:focus,
+        .form-textarea:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        .form-textarea {
+            font-family: 'Courier New', monospace;
+            min-height: 120px;
+            resize: vertical;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 8px;
+            justify-content: flex-end;
+            margin-top: 16px;
+        }
+
+        .btn-modal {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            font-size: 0.9em;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .btn-modal.primary {
+            background: linear-gradient(135deg, var(--accent) 0%, var(--accent-alt) 100%);
+            color: white;
+        }
+
+        .btn-modal.secondary {
+            background: var(--bg-tertiary);
+            color: var(--text-secondary);
+        }
+
+        /* Scrollbars */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg-tertiary);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--accent);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--accent-alt);
+        }
+
+        [contenteditable="true"] {
+            outline: none;
+        }
+
+        [contenteditable="true"]:focus {
+            background: #3d3d00 !important;
+        }
+
+        .keyboard-hint {
+            position: fixed;
+            bottom: 16px;
+            left: 280px;
+            background: rgba(0, 0, 0, 0.9);
+            color: white;
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-size: 0.75em;
+            opacity: 0;
+            transition: opacity 0.3s;
+            z-index: 1500;
+        }
+
+        .keyboard-hint.show {
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+    <div class="layout">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="logo">🎯 Snippets</div>
+            <div class="subtitle">🔒 Claude (readonly) • 📝 User (editable) • Click to copy</div>
+
+            <button class="theme-toggle" onclick="toggleTheme()">
+                <span id="themeIcon">🌙</span>
+                <span id="themeText">Dark Mode</span>
+            </button>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-value" id="claudeCount">0</div>
+                    <div class="stat-label">🔒 Claude</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="userCount">0</div>
+                    <div class="stat-label">📝 User</div>
+                </div>
+            </div>
+
+            <button class="btn btn-primary" onclick="showAddModal()">➕ New Snippet</button>
+
+            <div class="section-title">Import / Export</div>
+            <button class="btn btn-secondary" onclick="exportSnippets()">📥 Export JSON</button>
+            <button class="btn btn-secondary" onclick="document.getElementById('importFile').click()">📤 Import JSON</button>
+            <input type="file" id="importFile" accept=".json" style="display: none" onchange="importSnippets(event)">
+
+            <div id="bulkActionsSection" class="hidden">
+                <div class="section-title">Bulk Actions</div>
+                <div class="bulk-actions">
+                    <button class="btn btn-secondary" onclick="bulkDelete()" title="Delete selected">
+                        🗑️
+                    </button>
+                    <button class="btn btn-secondary" onclick="clearSelection()" title="Clear selection">
+                        ✖️
+                    </button>
+                </div>
+            </div>
+
+            <div class="section-title">Filters</div>
+            <div class="filter-group">
+                <label class="filter-label">Source</label>
+                <select id="sourceSelect" onchange="applyFilters()">
+                    <option value="all">All Snippets</option>
+                    <option value="claude">🔒 Claude Only</option>
+                    <option value="user">📝 User Only</option>
+                </select>
+            </div>
+
+            <div class="filter-group">
+                <label class="filter-label">Sort By</label>
+                <select id="sortSelect" onchange="applyFilters()">
+                    <option value="name">Name (A-Z)</option>
+                    <option value="name-desc">Name (Z-A)</option>
+                    <option value="prefix">Prefix (A-Z)</option>
+                    <option value="recent">Recently Added</option>
+                </select>
+            </div>
+
+            <div class="filter-group">
+                <label class="filter-label">Category</label>
+                <select id="categorySelect" onchange="applyFilters()">
+                    <option value="">All Categories</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <div class="top-bar">
+                <input
+                    type="text"
+                    id="searchInput"
+                    placeholder="🔍 Search snippets..."
+                    autocomplete="off"
+                >
+
+                <div class="view-toggle">
+                    <button class="view-btn" onclick="setGridView(1)" title="1 column">▊</button>
+                    <button class="view-btn" onclick="setGridView(2)" title="2 columns">▊▊</button>
+                    <button class="view-btn active" onclick="setGridView(4)" title="4 columns">▊▊▊▊</button>
+                </div>
+            </div>
+
+            <div class="snippets-grid" id="snippetsContainer"></div>
+
+            <div class="no-results" id="noResults" style="display: none;">
+                No snippets found.
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Modal -->
+    <div class="modal" id="addModal">
+        <div class="modal-content">
+            <div class="modal-header">Add New Snippet</div>
+            <form id="addForm" onsubmit="handleAddSnippet(event)">
+                <div class="form-group">
+                    <label class="form-label">Name</label>
+                    <input type="text" class="form-input" id="newName" required placeholder="Deploy Worker Prompt">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Prefix</label>
+                    <input type="text" class="form-input" id="newPrefix" required placeholder="prompt-deploy-worker">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Description</label>
+                    <input type="text" class="form-input" id="newDescription" required placeholder="Deploy worker with validation">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Body</label>
+                    <textarea class="form-textarea" id="newBody" required placeholder="Line 1&#10;Line 2&#10;..."></textarea>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn-modal secondary" onclick="hideAddModal()">Cancel</button>
+                    <button type="submit" class="btn-modal primary">Add</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="save-indicator" id="saveIndicator">✓ Saved</div>
+    <div class="keyboard-hint" id="keyboardHint"></div>
+
+    <script>
+        const API_URL = 'http://localhost:3456/api/snippets';
+        const USER_API_URL = 'http://localhost:3456/api/user-snippets';
+        let snippets = {}; // Combined snippets with readonly flag
+        let claudeSnippets = {}; // Read-only Claude commands
+        let userSnippets = {}; // Editable user snippets
+        let currentFilter = '';
+        let selectedSnippets = new Set();
+        let currentSort = 'name';
+        let currentCategory = '';
+        let currentSource = 'all';
+
+        // Theme management
+        function initTheme() {
+            const savedTheme = localStorage.getItem('snippets-theme') || 'dark';
+            if (savedTheme === 'light') {
+                document.body.classList.add('light-mode');
+                updateThemeButton('light');
+            }
+        }
+
+        function toggleTheme() {
+            const isLight = document.body.classList.toggle('light-mode');
+            const theme = isLight ? 'light' : 'dark';
+            localStorage.setItem('snippets-theme', theme);
+            updateThemeButton(theme);
+            showKeyboardHint(`${theme === 'light' ? 'Light' : 'Dark'} mode`);
+        }
+
+        function updateThemeButton(theme) {
+            const icon = document.getElementById('themeIcon');
+            const text = document.getElementById('themeText');
+            if (theme === 'light') {
+                icon.textContent = '☀️';
+                text.textContent = 'Light Mode';
+            } else {
+                icon.textContent = '🌙';
+                text.textContent = 'Dark Mode';
+            }
+        }
+
+        async function loadSnippets() {
+            try {
+                // Load Claude commands (readonly)
+                const claudeResponse = await fetch(API_URL);
+                claudeSnippets = await claudeResponse.json();
+
+                // Load user snippets (editable)
+                const userResponse = await fetch(USER_API_URL);
+                userSnippets = await userResponse.json();
+
+                // Merge with readonly flags
+                snippets = {};
+
+                // Add Claude snippets with readonly flag
+                Object.entries(claudeSnippets).forEach(([name, data]) => {
+                    snippets[name] = { ...data, readonly: true, source: 'claude' };
+                });
+
+                // Add user snippets without readonly flag
+                Object.entries(userSnippets).forEach(([name, data]) => {
+                    snippets[name] = { ...data, readonly: false, source: 'user' };
+                });
+
+                updateCategoryFilter();
+                renderSnippets();
+            } catch (err) {
+                console.error('Error loading:', err);
+                showSaveIndicator('Error loading', true);
+            }
+        }
+
+        async function saveSnippets() {
+            try {
+                // Extract only user snippets (non-readonly)
+                const userSnippetsToSave = {};
+                Object.entries(snippets).forEach(([name, data]) => {
+                    if (!data.readonly) {
+                        const { readonly, source, ...cleanData } = data;
+                        userSnippetsToSave[name] = cleanData;
+                    }
+                });
+
+                // Save to user-snippets.json
+                const response = await fetch(USER_API_URL, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(userSnippetsToSave)
+                });
+                const result = await response.json();
+                showSaveIndicator(result.success ? 'Saved' : 'Failed', !result.success);
+            } catch (err) {
+                showSaveIndicator('Error', true);
+            }
+        }
+
+        function showSaveIndicator(msg, isError = false) {
+            const indicator = document.getElementById('saveIndicator');
+            indicator.textContent = msg;
+            indicator.classList.toggle('error', isError);
+            indicator.classList.add('show');
+            setTimeout(() => indicator.classList.remove('show'), 2000);
+        }
+
+        function showKeyboardHint(msg) {
+            const hint = document.getElementById('keyboardHint');
+            hint.textContent = msg;
+            hint.classList.add('show');
+            setTimeout(() => hint.classList.remove('show'), 2000);
+        }
+
+        function updateCategoryFilter() {
+            const categories = new Set(Object.values(snippets).map(s => s.prefix.split('-')[1] || 'other'));
+            const select = document.getElementById('categorySelect');
+            const currentValue = select.value;
+
+            select.innerHTML = '<option value="">All Categories</option>';
+            [...categories].sort().forEach(cat => {
+                const opt = document.createElement('option');
+                opt.value = cat;
+                opt.textContent = cat.charAt(0).toUpperCase() + cat.slice(1);
+                select.appendChild(opt);
+            });
+
+            if (currentValue) select.value = currentValue;
+        }
+
+        function getSortedSnippets() {
+            let entries = Object.entries(snippets);
+
+            // Filter by source (Claude/User/All)
+            if (currentSource !== 'all') {
+                entries = entries.filter(([_, data]) => {
+                    if (currentSource === 'claude') return data.readonly === true;
+                    if (currentSource === 'user') return data.readonly === false;
+                    return true;
+                });
+            }
+
+            if (currentCategory) {
+                entries = entries.filter(([_, data]) => {
+                    const cat = data.prefix.split('-')[1] || 'other';
+                    return cat === currentCategory;
+                });
+            }
+
+            if (currentFilter) {
+                const search = currentFilter.toLowerCase();
+                entries = entries.filter(([name, data]) =>
+                    name.toLowerCase().includes(search) ||
+                    data.prefix.toLowerCase().includes(search) ||
+                    data.description.toLowerCase().includes(search) ||
+                    (Array.isArray(data.body) ? data.body.join(' ') : data.body).toLowerCase().includes(search)
+                );
+            }
+
+            entries.sort(([n1, d1], [n2, d2]) => {
+                switch (currentSort) {
+                    case 'name': return n1.localeCompare(n2);
+                    case 'name-desc': return n2.localeCompare(n1);
+                    case 'prefix': return d1.prefix.localeCompare(d2.prefix);
+                    case 'recent': return 0;
+                    default: return 0;
+                }
+            });
+
+            return entries;
+        }
+
+        function renderSnippets() {
+            const container = document.getElementById('snippetsContainer');
+            const noResults = document.getElementById('noResults');
+            container.innerHTML = '';
+
+            const filtered = getSortedSnippets();
+
+            if (filtered.length === 0) {
+                container.style.display = 'none';
+                noResults.style.display = 'block';
+                return;
+            }
+
+            container.style.display = 'grid';
+            noResults.style.display = 'none';
+
+            filtered.forEach(([name, data]) => {
+                const card = document.createElement('div');
+                card.className = 'snippet-card';
+                if (selectedSnippets.has(name)) card.classList.add('selected');
+                if (data.readonly) card.classList.add('readonly');
+
+                const bodyText = Array.isArray(data.body) ? data.body.join('\n') : data.body;
+                const esc = (s) => s.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+                const isReadonly = data.readonly || false;
+                const sourceBadge = isReadonly
+                    ? '<div class="source-badge claude">🔒 Claude</div>'
+                    : '<div class="source-badge user">📝 User</div>';
+
+                // Build action buttons - only show edit/delete for user snippets
+                const actionButtons = isReadonly
+                    ? `<button class="btn-action" onclick="copySnippet(this, \`${bodyText.replace(/`/g, '\\`').replace(/\$/g, '\\$')}\`)" title="Copy">📋</button>`
+                    : `<button class="btn-action" onclick="copySnippet(this, \`${bodyText.replace(/`/g, '\\`').replace(/\$/g, '\\$')}\`)" title="Copy">📋</button>
+                       <button class="btn-action duplicate" onclick="event.stopPropagation(); duplicateSnippet('${esc(name)}')" title="Duplicate">📑</button>
+                       <button class="btn-action delete" onclick="event.stopPropagation(); deleteSnippet('${esc(name)}')" title="Delete">🗑️</button>`;
+
+                card.innerHTML = `
+                    <div class="copy-indicator">✓ Copied!</div>
+                    <div class="copy-hint">📋 Auto-copy</div>
+                    <input type="checkbox" class="snippet-checkbox" ${selectedSnippets.has(name) ? 'checked' : ''}
+                           onchange="toggleSelection('${esc(name)}')">
+                    <div class="snippet-title" contenteditable="${!isReadonly}" data-field="name"
+                         onblur="handleEdit(this, '${esc(name)}')" onkeydown="handleEnter(event)">${name}${sourceBadge}</div>
+                    <div class="snippet-meta">
+                        <div class="snippet-prefix" contenteditable="${!isReadonly}" data-field="prefix"
+                             onblur="handleEdit(this, '${esc(name)}')" onkeydown="handleEnter(event)">${data.prefix}</div>
+                    </div>
+                    <div class="snippet-description" contenteditable="${!isReadonly}" data-field="description"
+                         onblur="handleEdit(this, '${esc(name)}')" onkeydown="handleEnter(event)">${data.description}</div>
+                    <div class="snippet-body" contenteditable="${!isReadonly}" data-field="body"
+                         onblur="handleEdit(this, '${esc(name)}')">${bodyText}</div>
+                    <div class="card-actions">
+                        ${actionButtons}
+                    </div>
+                `;
+
+                // Add click handler to card for copying - ANY click copies
+                card.addEventListener('click', (e) => {
+                    // Skip only for duplicate and delete buttons
+                    if (e.target.closest('.duplicate, .delete')) {
+                        return;
+                    }
+                    copyToClipboardFromCard(card, bodyText);
+                });
+
+                // Add focus handlers only to editable elements (user snippets)
+                if (!isReadonly) {
+                    const editableElements = card.querySelectorAll('[contenteditable="true"]');
+                    editableElements.forEach(el => {
+                        el.addEventListener('focus', () => {
+                            copyToClipboardFromCard(card, bodyText);
+                        });
+                    });
+                }
+
+                container.appendChild(card);
+            });
+
+            updateStats();
+        }
+
+        function updateStats() {
+            const claudeCount = Object.values(snippets).filter(s => s.readonly).length;
+            const userCount = Object.values(snippets).filter(s => !s.readonly).length;
+
+            document.getElementById('claudeCount').textContent = claudeCount;
+            document.getElementById('userCount').textContent = userCount;
+            document.getElementById('bulkActionsSection').classList.toggle('hidden', selectedSnippets.size === 0);
+        }
+
+        function toggleSelection(name) {
+            if (selectedSnippets.has(name)) {
+                selectedSnippets.delete(name);
+            } else {
+                selectedSnippets.add(name);
+            }
+            renderSnippets();
+        }
+
+        function clearSelection() {
+            selectedSnippets.clear();
+            renderSnippets();
+        }
+
+        function bulkDelete() {
+            const count = selectedSnippets.size;
+            if (!confirm(`Delete ${count} snippets?`)) return;
+            selectedSnippets.forEach(name => delete snippets[name]);
+            selectedSnippets.clear();
+            saveSnippets();
+            renderSnippets();
+            showKeyboardHint(`Deleted ${count} snippets`);
+        }
+
+        function handleEdit(el, snippetName) {
+            // Prevent editing readonly snippets
+            if (snippets[snippetName]?.readonly) {
+                return;
+            }
+
+            const field = el.dataset.field;
+            const newValue = el.textContent.trim();
+
+            if (field === 'name' && newValue && newValue !== snippetName) {
+                snippets[newValue] = snippets[snippetName];
+                delete snippets[snippetName];
+                if (selectedSnippets.has(snippetName)) {
+                    selectedSnippets.delete(snippetName);
+                    selectedSnippets.add(newValue);
+                }
+                saveSnippets();
+                renderSnippets();
+            } else if (field === 'body') {
+                snippets[snippetName].body = newValue.split('\n');
+                saveSnippets();
+            } else {
+                snippets[snippetName][field] = newValue;
+                saveSnippets();
+            }
+        }
+
+        function handleEnter(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                e.target.blur();
+            }
+        }
+
+        function copySnippet(btn, text) {
+            navigator.clipboard.writeText(text).then(() => {
+                btn.textContent = '✓';
+                btn.classList.add('copied');
+                setTimeout(() => {
+                    btn.textContent = '📋';
+                    btn.classList.remove('copied');
+                }, 1500);
+            });
+        }
+
+        function copyToClipboardFromCard(card, text) {
+            navigator.clipboard.writeText(text).then(() => {
+                // Show copy indicator overlay
+                const indicator = card.querySelector('.copy-indicator');
+                indicator.classList.add('show');
+
+                // Add copied class to card
+                card.classList.add('copied');
+
+                // Show keyboard hint
+                showKeyboardHint('Copied to clipboard!');
+
+                // Remove after delay
+                setTimeout(() => {
+                    indicator.classList.remove('show');
+                    card.classList.remove('copied');
+                }, 1500);
+            }).catch(err => {
+                console.error('Failed to copy:', err);
+                showSaveIndicator('Copy failed', true);
+            });
+        }
+
+        function duplicateSnippet(name) {
+            const original = snippets[name];
+            let newName = `${name} (Copy)`;
+            let counter = 2;
+            while (snippets[newName]) newName = `${name} (Copy ${counter++})`;
+
+            // Duplicate as a user snippet (always editable)
+            snippets[newName] = {
+                prefix: `${original.prefix}-copy`,
+                description: original.description,
+                body: [...original.body],
+                readonly: false,
+                source: 'user'
+            };
+
+            saveSnippets();
+            renderSnippets();
+            showKeyboardHint(`Duplicated: ${newName}`);
+        }
+
+        function deleteSnippet(name) {
+            // Prevent deleting readonly snippets
+            if (snippets[name]?.readonly) {
+                showSaveIndicator('Cannot delete Claude commands', true);
+                return;
+            }
+
+            if (confirm(`Delete "${name}"?`)) {
+                delete snippets[name];
+                selectedSnippets.delete(name);
+                saveSnippets();
+                renderSnippets();
+                showKeyboardHint(`Deleted: ${name}`);
+            }
+        }
+
+        function exportSnippets() {
+            const blob = new Blob([JSON.stringify(snippets, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `snippets-${new Date().toISOString().split('T')[0]}.json`;
+            link.click();
+            URL.revokeObjectURL(url);
+            showKeyboardHint('Exported');
+        }
+
+        function importSnippets(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    const imported = JSON.parse(e.target.result);
+                    let count = 0;
+                    Object.entries(imported).forEach(([name, data]) => {
+                        if (!snippets[name]) {
+                            snippets[name] = data;
+                            count++;
+                        }
+                    });
+                    saveSnippets();
+                    updateCategoryFilter();
+                    renderSnippets();
+                    showKeyboardHint(`Imported ${count} snippets`);
+                } catch (err) {
+                    alert('Invalid JSON file');
+                }
+            };
+            reader.readAsText(file);
+            event.target.value = '';
+        }
+
+        function showAddModal() {
+            document.getElementById('addModal').classList.add('show');
+            document.getElementById('newName').focus();
+        }
+
+        function hideAddModal() {
+            document.getElementById('addModal').classList.remove('show');
+            document.getElementById('addForm').reset();
+        }
+
+        function handleAddSnippet(e) {
+            e.preventDefault();
+            const name = document.getElementById('newName').value.trim();
+            const prefix = document.getElementById('newPrefix').value.trim();
+            const description = document.getElementById('newDescription').value.trim();
+            const body = document.getElementById('newBody').value.split('\n');
+
+            if (snippets[name]) {
+                alert('Name exists!');
+                return;
+            }
+
+            // Add as user snippet (editable)
+            snippets[name] = {
+                prefix,
+                description,
+                body,
+                readonly: false,
+                source: 'user'
+            };
+
+            saveSnippets();
+            updateCategoryFilter();
+            renderSnippets();
+            hideAddModal();
+            showKeyboardHint(`Added: ${name}`);
+        }
+
+        function applyFilters() {
+            currentSource = document.getElementById('sourceSelect').value;
+            currentSort = document.getElementById('sortSelect').value;
+            currentCategory = document.getElementById('categorySelect').value;
+            renderSnippets();
+        }
+
+        function setGridView(cols) {
+            const grid = document.getElementById('snippetsContainer');
+            grid.className = 'snippets-grid';
+            if (cols === 1) grid.classList.add('view-1');
+            if (cols === 2) grid.classList.add('view-2');
+
+            document.querySelectorAll('.view-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+        }
+
+        document.getElementById('searchInput').addEventListener('input', (e) => {
+            currentFilter = e.target.value;
+            renderSnippets();
+        });
+
+        document.addEventListener('keydown', (e) => {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'n') {
+                e.preventDefault();
+                showAddModal();
+            }
+            if (e.key === '/' && !e.target.matches('input, textarea, [contenteditable="true"]')) {
+                e.preventDefault();
+                document.getElementById('searchInput').focus();
+            }
+            if (e.key === 'Escape') {
+                if (document.getElementById('addModal').classList.contains('show')) {
+                    hideAddModal();
+                } else if (currentFilter) {
+                    document.getElementById('searchInput').value = '';
+                    currentFilter = '';
+                    renderSnippets();
+                }
+            }
+            if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
+                e.preventDefault();
+                document.getElementById('searchInput').focus();
+            }
+        });
+
+        document.getElementById('addModal').addEventListener('click', (e) => {
+            if (e.target.id === 'addModal') hideAddModal();
+        });
+
+        // Initialize
+        initTheme();
+        loadSnippets();
+    </script>
+</body>
+</html>

@@ -1,0 +1,42 @@
+{
+  "name": "claude-snippets-manager",
+  "version": "1.0.0",
+  "description": "Visual interface for managing VSCode snippets with auto-copy functionality. Perfect for Claude Code users.",
+  "type": "module",
+  "main": "server.js",
+  "bin": {
+    "snippets": "./server.js"
+  },
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js"
+  },
+  "keywords": [
+    "snippets",
+    "vscode",
+    "claude",
+    "claude-code",
+    "snippet-manager",
+    "developer-tools",
+    "local-development"
+  ],
+  "author": "",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/YOUR_USERNAME/claude-snippets-manager.git"
+  },
+  "bugs": {
+    "url": "https://github.com/YOUR_USERNAME/claude-snippets-manager/issues"
+  },
+  "homepage": "https://github.com/YOUR_USERNAME/claude-snippets-manager#readme",
+  "dependencies": {
+    "express": "^4.21.2"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.9"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
